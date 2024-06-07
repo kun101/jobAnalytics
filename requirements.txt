@@ -1,0 +1,5 @@
+linkedin_jobs_scraper==4.1.1
+nltk==3.8.1
+pandas==2.2.2
+streamlit==1.35.0
+transformers==4.41.2
