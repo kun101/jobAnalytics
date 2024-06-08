@@ -13,8 +13,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
+from chromedriver_py import binary_path
+
 pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription")
-path = ChromeService(ChromeDriverManager().install()).path
+# path = ChromeService(ChromeDriverManager().install()).path
 
 
 def get_data(locations=["India"], job_title="Data Analyst", limit=5):
@@ -26,7 +28,7 @@ def get_data(locations=["India"], job_title="Data Analyst", limit=5):
         OnSiteOrRemoteFilters, SalaryBaseFilters
 
     # Change root logger level (default is WARN)
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARN)
 
     all_data = []
 
@@ -45,7 +47,7 @@ def get_data(locations=["India"], job_title="Data Analyst", limit=5):
         print('[ON_END]')
 
     scraper = LinkedinScraper(
-        chrome_executable_path=path,  # Custom Chrome executable path (e.g. /foo/bar/bin/chromedriver)
+        chrome_executable_path=binary_path,  # Custom Chrome executable path (e.g. /foo/bar/bin/chromedriver)
         headless=True,  # Overrides headless mode only if chrome_options is None
         max_workers=2,  # How many threads will be spawned to run queries concurrently (one Chrome driver for each thread)
         slow_mo=0.5,  # Slow down the scraper to avoid 'Too many requests 429' errors (in seconds)
