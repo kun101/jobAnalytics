@@ -8,3 +8,4 @@ selenium==4.21.0
 seleniumbase==4.27.4
 webdriver-manager==4.0.1
 chromedriver_py==125.0.6422.141
+pymongo==4.7.3
