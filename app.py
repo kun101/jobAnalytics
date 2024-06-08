@@ -25,9 +25,6 @@ collection = database["linkedin"]
 def get_data(locations=["India"], job_title="Data Analyst", limit=50):
     # filter data
     all_data = list(collection.find({}).limit(limit))
-    
-    # print(all_data)
-
     return all_data
 
 def skills_from_description(all_data):

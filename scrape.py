@@ -2,7 +2,7 @@ import pymongo
 from pymongo import MongoClient
 import os
 
-def get_data(locations=["India"], job_title="Data Analyst", limit=2):
+def get_data(locations=["India"], job_title="Data Analyst", limit=100):
     import logging
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper.events import Events, EventData, EventMetrics
