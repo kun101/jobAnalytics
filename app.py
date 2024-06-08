@@ -31,7 +31,6 @@ def skills_from_description(all_data):
     # print(all_data)
     all_jobs = []
     for data in all_data:
-        print(data)
         description = word_tokenize(data["description"])
         s = " ".join(description)
         
@@ -46,8 +45,6 @@ def skills_from_description(all_data):
         skills = skills.replace('data,analytics','data analytics')
         skills = skills.replace('deep,learning','deep learning')
         skills = skills.split(",")
-        
-        # print(skills)
         
         all_jobs.append({
             "title": data["title"],
@@ -70,7 +67,6 @@ if st.button("Scrape"):
     st.write(df)
     
     all_jobs = skills_from_description(all_data)
-    # print(all_jobs)
     st.write("Insights")
     df = pd.DataFrame(all_jobs)
     st.write(df)
