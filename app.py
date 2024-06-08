@@ -17,7 +17,7 @@ pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-S
 
 # get all data from mongodb
 uri = "mongodb+srv://user:TGHgAjP7quKMl3tC@cluster0.yherqml.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-client = MongoClient(uri,ssl.CERT_NONE)
+client = MongoClient(uri)
 database = client["jobs"]
 collection = database["linkedin"]
 
