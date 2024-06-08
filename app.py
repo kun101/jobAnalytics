@@ -9,6 +9,10 @@ from nltk.corpus import stopwords
 nltk.download('punkt')
 nltk.download('stopwords')
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+
 pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription")
 
 
@@ -32,15 +36,17 @@ def get_data(locations=["India"], job_title="Data Analyst", limit=5):
 
 
     # Fired once for each page (25 jobs)
-    def on_metrics(metrics: EventMetrics):
-        print('[ON_METRICS]', str(metrics))
+    # def on_metrics(metrics: EventMetrics):
+    #     print('[ON_METRICS]', str(metrics))
 
 
     def on_end():
         print('[ON_END]')
 
+    path = ChromeService(ChromeDriverManager().install()).path
 
     scraper = LinkedinScraper(
+        chrome_executable_path=path,  # Custom Chrome executable path (e.g. /foo/bar/bin/chromedriver)
         headless=True,  # Overrides headless mode only if chrome_options is None
         max_workers=2,  # How many threads will be spawned to run queries concurrently (one Chrome driver for each thread)
         slow_mo=0.5,  # Slow down the scraper to avoid 'Too many requests 429' errors (in seconds)
@@ -74,7 +80,7 @@ def get_data(locations=["India"], job_title="Data Analyst", limit=5):
     return all_data
 
 def skills_from_description(all_data):
-    print(all_data)
+    # print(all_data)
     all_jobs = []
     for data in all_data:
         description = word_tokenize(data.description)
@@ -92,7 +98,7 @@ def skills_from_description(all_data):
         skills = skills.replace('deep,learning','deep learning')
         skills = skills.split(",")
         
-        print(skills)
+        # print(skills)
         
         all_jobs.append({
             "title": data.title,
@@ -118,7 +124,7 @@ if st.button("Scrape"):
     st.write(df)
     
     all_jobs = skills_from_description(all_data)
-    print(all_jobs)
+    # print(all_jobs)
     st.write("Insights")
     df = pd.DataFrame(all_jobs)
     st.write(df)
