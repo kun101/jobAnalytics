@@ -14,6 +14,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription")
+path = ChromeService(ChromeDriverManager().install()).path
 
 
 def get_data(locations=["India"], job_title="Data Analyst", limit=5):
@@ -42,8 +43,6 @@ def get_data(locations=["India"], job_title="Data Analyst", limit=5):
 
     def on_end():
         print('[ON_END]')
-
-    path = ChromeService(ChromeDriverManager().install()).path
 
     scraper = LinkedinScraper(
         chrome_executable_path=path,  # Custom Chrome executable path (e.g. /foo/bar/bin/chromedriver)
