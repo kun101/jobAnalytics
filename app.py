@@ -19,10 +19,10 @@ import pymongo
 from pymongo import MongoClient
 
 
-pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription", token=os.environ['ACCESS_TOKEN'])
+pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription", token=st.secrets["ACCESS_TOKEN"])
 
 # get uri from .env file
-uri = os.environ['MONGO_URL']
+uri = st.secrets["MONGO_URL"]
 client = MongoClient(uri)
 database = client["jobs"]
 collection = database["linkedin"]
@@ -96,12 +96,46 @@ if st.button("Get Insights"):
     with st.expander("Show Full Data"):
         st.write(df)
         
+    so_df = pd.read_csv('employed.csv')
+    so_df.fillna("", inplace=True)
+    
+    # filter so_df on country if country contains any value in locations
+    so_df = so_df[so_df["Country"].str.contains("India")]
+    
+    # get only those rows where Employment contains the substring "Employed"
+    so_df = so_df[so_df["Employment"].str.contains("Employed")]
+    
+    so_df = so_df[so_df["DevType"].str.contains("data")]
+    
+    so_df["skills"] = so_df["LanguageHaveWorkedWith"] + ";" + so_df["DatabaseHaveWorkedWith"] + ";" + so_df["WebframeHaveWorkedWith"] + ";" + so_df["MiscTechHaveWorkedWith"] + ";" + so_df["ToolsTechHaveWorkedWith"]
+    so_df["skills"] = so_df["skills"].str.split(";")
+    
+    # rename DevType to title
+    so_df.rename(columns={"DevType":"title"}, inplace=True)
+    
+    # rename Country to country
+    so_df.rename(columns={"Country":"country"}, inplace=True)
+    
+    # keep only title, country and skills columns
+    so_df = so_df[["title", "country", "skills"]]
+    
+    # add blank company, date and link columns
+    so_df["company"] = "Stack Overflow Survey Data"
+    so_df["date"] = ""
+    so_df["link"] = ""
+    
+    # append so_df to df
+    df = pd.concat([df, so_df])
+        
     # print top occuring skills
     st.subheader('Most Frequently Occuring Skills')
     st.write("Top skills extracted from job descriptions, and presented as a bar chart.")
     skills = df["skills"].sum()
     skills = pd.Series(skills).value_counts()
     skills = skills.sort_values(ascending=False)
+    
+    # remove blank skills
+    skills = skills.drop("")
         
         # make altair chart
     chart = alt.Chart(skills.reset_index()).mark_bar().encode(
@@ -109,6 +143,9 @@ if st.button("Get Insights"):
         y=alt.Y('count', title="Count"),
     )
     st.altair_chart(chart, use_container_width=True)
+    
+    # show skills as dataframe
+    st.dataframe(skills.reset_index().rename(columns={"index":"Skill", 0:"Count"}), use_container_width=True)
         
     # make a chart for each company and their skills
     for company in df["company"].unique():

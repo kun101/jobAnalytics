@@ -1,0 +1,8 @@
+.env
+scrape.py
+
+/.streamlit/
+/.streamlit/config.toml
+/.streamlit/secrets.toml
+
+data.csv
