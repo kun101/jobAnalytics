@@ -1,7 +1,13 @@
 import streamlit as st
 import pandas as pd
 
+import os
+
 from transformers import pipeline
+
+import altair as alt
+
+import time
 
 import nltk
 from nltk.tokenize import word_tokenize
@@ -12,17 +18,17 @@ nltk.download('stopwords')
 import pymongo
 from pymongo import MongoClient
 
-pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription")
-# path = ChromeService(ChromeDriverManager().install()).path
 
-# get all data from mongodb
-uri = "mongodb+srv://user:TGHgAjP7quKMl3tC@cluster0.yherqml.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription", token=os.environ['ACCESS_TOKEN'])
+
+# get uri from .env file
+uri = os.environ['MONGO_URL']
 client = MongoClient(uri)
 database = client["jobs"]
 collection = database["linkedin"]
 
 
-def get_data(locations=["India"], job_title="Data Analyst", limit=50):
+def get_data(locations=["India"], job_title="Data Analyst", limit=10):
     # filter data and return all columns except _id
     all_data = list(collection.find({}).limit(limit))
     
@@ -35,6 +41,8 @@ def get_data(locations=["India"], job_title="Data Analyst", limit=50):
 def skills_from_description(all_data):
     # print(all_data)
     all_jobs = []
+    progress_text = "Analyzing Jobs. Please Wait."
+    my_bar = st.progress(0, text=progress_text)
     for data in all_data:
         description = word_tokenize(data["description"])
         s = " ".join(description)
@@ -47,9 +55,10 @@ def skills_from_description(all_data):
         
         skills = skills.replace(',##','')
         skills = skills.replace('machine,learning','machine learning')
-        skills = skills.replace('data,analytics','data analytics')
         skills = skills.replace('deep,learning','deep learning')
         skills = skills.split(",")
+        # remove blank elements
+        skills = list(filter(None, skills))
         
         all_jobs.append({
             "title": data["title"],
@@ -58,24 +67,49 @@ def skills_from_description(all_data):
             "link": data["link"],
             "skills": skills
         })
+        
+        my_bar.progress((all_data.index(data)+1)/len(all_data), text=progress_text)
+        
+        if all_data.index(data)+1 == len(all_data):
+            my_bar.progress(100, text="Analysis Complete!")
+            time.sleep(1)
+            my_bar.empty()        
+        
     return all_jobs
 
 st.title("Job Analytics")
 locations = st.text_input("Enter locations separated by comma", "India")
 job_title = st.text_input("Enter job title", "Data Analyst")
 
-if st.button("Scrape"):
-    all_data = get_data(locations=locations.split(","), job_title=job_title)
-    st.write("Scraping done")
-    st.write("Data")
-    df = pd.DataFrame(all_data)
-    st.write(df)
+if st.button("Get Insights"):
+    
+    # fetching data spinner
+    with st.spinner("Fetching latest data..."):
+        all_data = get_data(locations=locations.split(","), job_title=job_title)
+        st.success('Data Fetched Successfully!', icon="✅")
     
     all_jobs = skills_from_description(all_data)
-    st.write("Insights")
-    df = pd.DataFrame(all_jobs)
-    st.write(df)
     
+    st.header(f'Job Insights for {job_title}')
+    
+    df = pd.DataFrame(all_jobs)
+    with st.expander("Show Full Data"):
+        st.write(df)
+        
+    # print top occuring skills
+    st.subheader('Most Frequently Occuring Skills')
+    st.write("Top skills extracted from job descriptions, and presented as a bar chart.")
+    skills = df["skills"].sum()
+    skills = pd.Series(skills).value_counts()
+    skills = skills.sort_values(ascending=False)
+        
+        # make altair chart
+    chart = alt.Chart(skills.reset_index()).mark_bar().encode(
+        x=alt.X('index', sort=None, title="Skills"),
+        y=alt.Y('count', title="Count"),
+    )
+    st.altair_chart(chart, use_container_width=True)
+        
     # make a chart for each company and their skills
     for company in df["company"].unique():
         st.write(f"Skills for {company}")
