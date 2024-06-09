@@ -23,8 +23,13 @@ collection = database["linkedin"]
 
 
 def get_data(locations=["India"], job_title="Data Analyst", limit=50):
-    # filter data
+    # filter data and return all columns except _id
     all_data = list(collection.find({}).limit(limit))
+    
+    # remove _id from all_data
+    for data in all_data:
+        data.pop("_id")
+    
     return all_data
 
 def skills_from_description(all_data):
