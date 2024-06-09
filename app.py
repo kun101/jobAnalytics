@@ -19,10 +19,10 @@ import pymongo
 from pymongo import MongoClient
 
 
-pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription", token=os.environ['ACCESS_TOKEN'])
+pipe = pipeline("token-classification", model="GalalEwida/LLM-BERT-Model-Based-Skills-Extraction-from-jobdescription", token=st.secrets["ACCESS_TOKEN"])
 
 # get uri from .env file
-uri = os.environ['MONGO_URL']
+uri = st.secrets["MONGO_URL"]
 client = MongoClient(uri)
 database = client["jobs"]
 collection = database["linkedin"]
